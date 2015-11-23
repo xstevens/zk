@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/samuel/go-zookeeper/zk"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 func servers() []string {
@@ -22,6 +23,14 @@ func connect() *zk.Conn {
 	conn, _, err := zk.Connect(svs, time.Second)
 	must(err)
 	return conn
+}
+
+func cleanPath(path string) string {
+	if path != "/" && strings.HasSuffix(path, "/") {
+		return path[:len(path)-1]
+	}
+
+	return path
 }
 
 var (
@@ -48,7 +57,7 @@ func runWatch(cmd *Command, args []string) {
 	if !(len(args) == 1) {
 		failUsage(cmd)
 	}
-	path := args[0]
+	path := cleanPath(args[0])
 	conn := connect()
 	defer conn.Close()
 	var events <-chan zk.Event
@@ -103,7 +112,7 @@ func runStat(cmd *Command, args []string) {
 	if !(len(args) == 1) {
 		failUsage(cmd)
 	}
-	path := args[0]
+	path := cleanPath(args[0])
 	conn := connect()
 	defer conn.Close()
 	_, stat, err := conn.Get(path)
@@ -138,7 +147,7 @@ func runGet(cmd *Command, args []string) {
 	if !(len(args) == 1) {
 		failUsage(cmd)
 	}
-	path := args[0]
+	path := cleanPath(args[0])
 	conn := connect()
 	defer conn.Close()
 	if !optWatch {
@@ -171,7 +180,7 @@ func runCreate(cmd *Command, args []string) {
 	if !(len(args) == 1) {
 		failUsage(cmd)
 	}
-	path := args[0]
+	path := cleanPath(args[0])
 	conn := connect()
 	defer conn.Close()
 	data := inData()
@@ -205,7 +214,7 @@ func runSet(cmd *Command, args []string) {
 	if !(len(args) == 1 || len(args) == 2) {
 		failUsage(cmd)
 	}
-	path := args[0]
+	path := cleanPath(args[0])
 	clobber := len(args) == 1
 	conn := connect()
 	defer conn.Close()
@@ -245,7 +254,7 @@ func runDelete(cmd *Command, args []string) {
 	if !(len(args) == 1 || len(args) == 2) {
 		failUsage(cmd)
 	}
-	path := args[0]
+	path := cleanPath(args[0])
 	clobber := len(args) == 1
 	conn := connect()
 	defer conn.Close()
@@ -300,7 +309,7 @@ func runChildren(cmd *Command, args []string) {
 	if !(len(args) == 1) {
 		failUsage(cmd)
 	}
-	path := args[0]
+	path := cleanPath(args[0])
 	conn := connect()
 	defer conn.Close()
 	if !optWatch {
